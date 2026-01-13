@@ -17,8 +17,9 @@ export const useTasksList = () => {
   );
 
   watch(
-    data,
-    (tasks) => {
+    [data, pending, error],
+    ([tasks, isPending, fetchError]) => {
+      if (isPending || fetchError) return;
       if (tasks) {
         store.setTasks(tasks);
       }
