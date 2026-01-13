@@ -11,7 +11,15 @@ export default defineNuxtConfig({
     host: "0.0.0.0",
   },
 
-  modules: ["@nuxt/fonts"],
+  modules: ["@nuxt/fonts", "@pinia/nuxt"],
+
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        types: ["node"],
+      },
+    },
+  },
 
   css: ["./app/assets/css/main.css"],
 
