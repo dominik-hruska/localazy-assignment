@@ -1,10 +1,10 @@
 <template>
   <section class="flex flex-col gap-8">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div class="flex flex-col gap-2">
         <p
-          class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
-        >
+          class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
           Task Radar
         </p>
         <h1 class="text-3xl font-semibold text-slate-900">Tasks</h1>
@@ -15,31 +15,31 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <div v-if="viewMode === TasksViewMode.List" class="flex flex-wrap gap-2">
+        <div
+          v-if="viewMode === TasksViewMode.List"
+          class="flex flex-wrap gap-2">
           <AtomButton
             v-for="filter in filters"
             :key="filter.value"
             :active="store.statusFilter === filter.value"
-            @click="store.setFilter(filter.value)"
-          >
+            @click="store.setFilter(filter.value)">
             {{ filter.label }}
           </AtomButton>
         </div>
-        <div class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 p-1">
+        <div
+          class="flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 p-1">
           <AtomButton
             tone="indigo"
             :active="viewMode === TasksViewMode.List"
             class="px-3 py-1 text-xs"
-            @click="viewMode = TasksViewMode.List"
-          >
+            @click="viewMode = TasksViewMode.List">
             List
           </AtomButton>
           <AtomButton
             tone="indigo"
             :active="viewMode === TasksViewMode.Board"
             class="px-3 py-1 text-xs"
-            @click="viewMode = TasksViewMode.Board"
-          >
+            @click="viewMode = TasksViewMode.Board">
             Board
           </AtomButton>
         </div>
@@ -47,7 +47,8 @@
     </div>
 
     <div class="rounded-2xl border border-slate-200 bg-white/80 p-4">
-      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+      <p
+        class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
         New task
       </p>
       <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -56,8 +57,7 @@
             v-model="newTitle"
             placeholder="Add a new task title"
             :max-length="TASK_TITLE_MAX_LENGTH"
-            @keyup.enter="handleCreate"
-          />
+            @keyup.enter="handleCreate" />
           <div class="flex items-center justify-between text-xs">
             <p class="text-slate-500">
               <span v-if="titleError" class="text-rose-600">
@@ -73,8 +73,7 @@
           :active="true"
           :loading="isCreating"
           :disabled="!canCreate"
-          @click="handleCreate"
-        >
+          @click="handleCreate">
           {{ isCreating ? "Adding" : "Add task" }}
         </MoleculeButton>
       </div>
@@ -87,8 +86,7 @@
       <div
         v-for="skeleton in 4"
         :key="skeleton"
-        class="animate-pulse rounded-2xl border border-slate-200 bg-white p-5"
-      >
+        class="animate-pulse rounded-2xl border border-slate-200 bg-white p-5">
         <div class="flex items-start justify-between gap-4">
           <div class="flex flex-col gap-3">
             <div class="h-3 w-24 rounded-full bg-slate-200" />
@@ -101,8 +99,7 @@
 
     <div
       v-else-if="error"
-      class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-6"
-    >
+      class="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-6">
       <p class="text-sm font-semibold text-rose-700">Unable to load tasks.</p>
       <p class="mt-2 text-sm text-rose-600">
         {{ error?.message ?? "Please try again." }}
@@ -110,16 +107,16 @@
       <button
         type="button"
         class="mt-4 rounded-full border border-rose-300 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:border-rose-400"
-        @click="handleRefresh"
-      >
+        @click="handleRefresh">
         Retry
       </button>
     </div>
 
     <div
-      v-else-if="viewMode === TasksViewMode.List && store.hasLoaded && isListEmpty"
-      class="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-10 text-center"
-    >
+      v-else-if="
+        viewMode === TasksViewMode.List && store.hasLoaded && isListEmpty
+      "
+      class="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-10 text-center">
       <p class="text-base font-semibold text-slate-900">No tasks found</p>
       <p class="mt-2 text-sm text-slate-500">
         Try a different status or reset the filter.
@@ -128,16 +125,16 @@
         v-if="store.statusFilter !== 'all'"
         type="button"
         class="mt-4 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
-        @click="store.setFilter('all')"
-      >
+        @click="store.setFilter('all')">
         Clear filter
       </button>
     </div>
 
     <div
-      v-else-if="viewMode === TasksViewMode.Board && store.hasLoaded && isBoardEmpty"
-      class="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-10 text-center"
-    >
+      v-else-if="
+        viewMode === TasksViewMode.Board && store.hasLoaded && isBoardEmpty
+      "
+      class="rounded-2xl border border-dashed border-slate-200 bg-white/70 px-6 py-10 text-center">
       <p class="text-base font-semibold text-slate-900">No tasks yet</p>
       <p class="mt-2 text-sm text-slate-500">
         New tasks will appear here as soon as they are created.
@@ -151,26 +148,22 @@
           :key="task.id"
           class="block"
           :to="`/tasks/${task.id}`"
-          :aria-label="`View task ${task.id}`"
-        >
+          :aria-label="`View task ${task.id}`">
           <TaskCard
             :task="task"
             :status-label="statusLabels[task.status]"
-            :status-class="statusClasses[task.status]"
-          >
+            :status-class="statusClasses[task.status]">
             <template #actions>
               <AtomButton
                 tone="rose"
                 class="flex h-8 w-8 items-center justify-center p-0"
                 :disabled="isDeleting"
-                @click.stop.prevent="openDeleteModal(task)"
-              >
+                @click.stop.prevent="openDeleteModal(task)">
                 <span class="sr-only">Delete</span>
                 <span
                   class="[&>svg]:h-4 [&>svg]:w-4"
                   aria-hidden="true"
-                  v-html="trashIcon"
-                />
+                  v-html="trashIcon" />
               </AtomButton>
             </template>
           </TaskCard>
@@ -180,16 +173,14 @@
         <div
           v-for="column in boardColumns"
           :key="column.status"
-          class="rounded-2xl border border-slate-200 bg-white/70 p-4"
-        >
+          class="rounded-2xl border border-slate-200 bg-white/70 p-4">
           <div class="flex items-center justify-between">
             <p class="text-sm font-semibold text-slate-900">
               {{ statusLabels[column.status] }}
             </p>
             <span
               class="rounded-full border px-2 py-0.5 text-xs font-semibold"
-              :class="statusClasses[column.status]"
-            >
+              :class="statusClasses[column.status]">
               {{ column.tasks.length }}
             </span>
           </div>
@@ -202,26 +193,22 @@
               :key="task.id"
               class="block"
               :to="`/tasks/${task.id}`"
-              :aria-label="`View task ${task.id}`"
-            >
+              :aria-label="`View task ${task.id}`">
               <TaskCard
                 :task="task"
                 :status-label="statusLabels[task.status]"
-                :status-class="statusClasses[task.status]"
-              >
+                :status-class="statusClasses[task.status]">
                 <template #actions>
                   <AtomButton
                     tone="rose"
                     class="flex h-8 w-8 items-center justify-center p-0"
                     :disabled="isDeleting"
-                    @click.stop.prevent="openDeleteModal(task)"
-                  >
+                    @click.stop.prevent="openDeleteModal(task)">
                     <span class="sr-only">Delete</span>
                     <span
                       class="[&>svg]:h-4 [&>svg]:w-4"
                       aria-hidden="true"
-                      v-html="trashIcon"
-                    />
+                      v-html="trashIcon" />
                   </AtomButton>
                 </template>
               </TaskCard>
@@ -235,8 +222,7 @@
       :open="isDeleteModalOpen"
       title="Delete task"
       description="This action cannot be undone."
-      @close="closeDeleteModal"
-    >
+      @close="closeDeleteModal">
       <template v-if="deleteTarget">
         <p class="text-sm text-slate-700">
           You are about to delete <strong>Task #{{ deleteTarget.id }}</strong
@@ -255,16 +241,14 @@
         <AtomButton
           :disabled="isDeleting"
           class="px-4 py-2 text-sm"
-          @click="closeDeleteModal"
-        >
+          @click="closeDeleteModal">
           Cancel
         </AtomButton>
         <MoleculeButton
           tone="rose"
           :active="true"
           :loading="isDeleting"
-          @click="confirmDelete"
-        >
+          @click="confirmDelete">
           {{ isDeleting ? "Deleting" : "Delete" }}
         </MoleculeButton>
       </template>

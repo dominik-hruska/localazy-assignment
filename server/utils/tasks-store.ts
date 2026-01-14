@@ -100,3 +100,9 @@ export async function deleteTask(id: number): Promise<boolean> {
   await writeTasks(nextTasks);
   return true;
 }
+
+export async function resetTasks(): Promise<Task[]> {
+  const tasks = cloneTasks(SEED_TASKS);
+  await writeTasks(tasks);
+  return tasks;
+}
