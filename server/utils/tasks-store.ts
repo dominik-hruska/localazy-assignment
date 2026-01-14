@@ -1,34 +1,54 @@
-import { promises as fs } from "node:fs";
-import { join } from "node:path";
 import { TaskStatus } from "~/enums/task-status";
 import type { Task } from "~/types/tasks";
+import { readLocalTasks, writeLocalTasks } from "./tasks-store/local-store";
+import {
+  readNetlifyTasks,
+  writeNetlifyTasks,
+} from "./tasks-store/netlify-store";
+import { SEED_TASKS } from "./tasks-store/seed";
 
-const DATA_DIR = join(process.cwd(), "server", "data");
-const TASKS_FILE = join(DATA_DIR, "tasks.json");
+const isNetlifyRuntime =
+  Boolean(process.env.NETLIFY) || Boolean(process.env.NETLIFY_LOCAL);
 
-const SEED_TASKS: Task[] = [
-  { id: 1, title: "Prepare release", status: TaskStatus.Done },
-  { id: 2, title: "Fix login bug", status: TaskStatus.InProgress },
-  { id: 3, title: "Write API docs", status: TaskStatus.Todo },
-];
+let useMemoryStore = false;
+let memoryTasks: Task[] | null = null;
 
-async function ensureDataFile() {
+const cloneTasks = (tasks: Task[]) => tasks.map((task) => ({ ...task }));
+
+const initMemoryStore = (tasks: Task[] = SEED_TASKS) => {
+  useMemoryStore = true;
+  memoryTasks = cloneTasks(tasks);
+};
+
+async function readTasks(): Promise<Task[]> {
+  if (useMemoryStore) {
+    if (!memoryTasks) initMemoryStore();
+    return cloneTasks(memoryTasks ?? []);
+  }
+
   try {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-    await fs.access(TASKS_FILE);
+    return isNetlifyRuntime ? await readNetlifyTasks() : await readLocalTasks();
   } catch {
-    await fs.writeFile(TASKS_FILE, JSON.stringify(SEED_TASKS, null, 2), "utf8");
+    initMemoryStore();
+    return cloneTasks(memoryTasks ?? []);
   }
 }
 
-async function readTasks(): Promise<Task[]> {
-  await ensureDataFile();
-  const raw = await fs.readFile(TASKS_FILE, "utf8");
-  return JSON.parse(raw) as Task[];
-}
-
 async function writeTasks(tasks: Task[]): Promise<void> {
-  await fs.writeFile(TASKS_FILE, JSON.stringify(tasks, null, 2), "utf8");
+  if (useMemoryStore) {
+    memoryTasks = cloneTasks(tasks);
+    return;
+  }
+
+  try {
+    if (isNetlifyRuntime) {
+      await writeNetlifyTasks(tasks);
+    } else {
+      await writeLocalTasks(tasks);
+    }
+  } catch {
+    initMemoryStore(tasks);
+  }
 }
 
 export async function getTasks(): Promise<Task[]> {
