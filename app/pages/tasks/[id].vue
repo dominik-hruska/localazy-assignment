@@ -46,12 +46,27 @@
               >
                 Task #{{ taskData.id }}
               </p>
-              <span
-                class="rounded-full border px-3 py-1 text-xs font-semibold"
-                :class="statusClasses[taskData.status]"
-              >
-                {{ statusLabels[taskData.status] }}
-              </span>
+              <div class="flex items-center gap-2">
+                <span
+                  class="rounded-full border px-3 py-1 text-xs font-semibold"
+                  :class="statusClasses[taskData.status]"
+                >
+                  {{ statusLabels[taskData.status] }}
+                </span>
+                <AtomButton
+                  tone="rose"
+                  class="flex h-8 w-8 items-center justify-center p-0"
+                  :disabled="isDeleting"
+                  @click="openDeleteModal"
+                >
+                  <span class="sr-only">Delete</span>
+                  <span
+                    class="[&>svg]:h-4 [&>svg]:w-4"
+                    aria-hidden="true"
+                    v-html="trashIcon"
+                  />
+                </AtomButton>
+              </div>
             </div>
             <div class="flex flex-wrap items-center gap-3">
               <h2
@@ -84,7 +99,7 @@
                 <AtomInput
                   v-model="editableTitle"
                   placeholder="Update task title"
-                  :max-length="TITLE_MAX_LENGTH"
+                  :max-length="TASK_TITLE_MAX_LENGTH"
                   @keyup.enter="saveTitle"
                   @keyup.escape="cancelTitleEdit"
                 />
@@ -96,7 +111,7 @@
                     <span v-else-if="isDirty">Unsaved changes</span>
                   </p>
                   <p class="text-slate-400">
-                    {{ editableTitle.length }}/{{ TITLE_MAX_LENGTH }}
+                    {{ editableTitle.length }}/{{ TASK_TITLE_MAX_LENGTH }}
                   </p>
                 </div>
               </div>
@@ -174,6 +189,45 @@
         </div>
       </div>
     </div>
+
+    <MoleculeModal
+      :open="isDeleteModalOpen"
+      title="Delete task"
+      description="This action cannot be undone."
+      @close="closeDeleteModal"
+    >
+      <template v-if="taskData">
+        <p class="text-sm text-slate-700">
+          You are about to delete <strong>Task #{{ taskData.id }}</strong
+          >.
+        </p>
+        <p class="mt-2 text-sm text-slate-600">
+          {{ taskData.title }}
+        </p>
+      </template>
+
+      <p v-if="deleteErrorMessage" class="mt-3 text-sm text-rose-600">
+        {{ deleteErrorMessage }}
+      </p>
+
+      <template #actions>
+        <AtomButton
+          :disabled="isDeleting"
+          class="px-4 py-2 text-sm"
+          @click="closeDeleteModal"
+        >
+          Cancel
+        </AtomButton>
+        <MoleculeButton
+          tone="rose"
+          :active="true"
+          :loading="isDeleting"
+          @click="confirmDelete"
+        >
+          {{ isDeleting ? "Deleting" : "Delete" }}
+        </MoleculeButton>
+      </template>
+    </MoleculeModal>
   </section>
 </template>
 
@@ -185,6 +239,7 @@ import AtomButton from "~/components/atoms/AtomButton.vue";
 import AtomLink from "~/components/atoms/AtomLink.vue";
 import AtomInput from "~/components/atoms/AtomInput.vue";
 import MoleculeButton from "~/components/molecules/MoleculeButton.vue";
+import MoleculeModal from "~/components/molecules/MoleculeModal.vue";
 import TaskActivityList from "~/components/TaskActivityList.vue";
 import TaskChecklist from "~/components/TaskChecklist.vue";
 import TaskMetaCard from "~/components/TaskMetaCard.vue";
@@ -193,7 +248,11 @@ import {
   TASK_STATUS_LABELS,
   TASK_STATUS_PROGRESS,
 } from "~/constants/tasks";
+import { useTaskDelete } from "~/composables/useTaskDelete";
 import { useTaskDetail } from "~/composables/useTaskDetail";
+import { getErrorMessage } from "~/helpers/error-message";
+import trashIcon from "~/assets/icons/trash.svg?raw";
+import { TASK_TITLE_MAX_LENGTH } from "#shared/constants/tasks";
 import {
   addDays,
   formatDate,
@@ -215,21 +274,23 @@ const taskId = computed(() => {
 
 const { task, pending, error, isSaving, saveError, saveTask } =
   useTaskDetail(taskId);
+const { isDeleting, deleteError, deleteTask } = useTaskDelete();
 
-const TITLE_MAX_LENGTH = 30;
-const clampTitle = (value: string) => value.trim().slice(0, TITLE_MAX_LENGTH);
+const clampTitle = (value: string) =>
+  value.trim().slice(0, TASK_TITLE_MAX_LENGTH);
 
 const taskData = computed<Task | null>(() => task.value);
 const isEditingTitle = ref(false);
+const isDeleteModalOpen = ref(false);
 
 const editableTitle = ref("");
 const titlePreview = computed(() => {
   if (!taskData.value) return "";
 
   const title = taskData.value.title.trim();
-  if (title.length <= TITLE_MAX_LENGTH) return title;
+  if (title.length <= TASK_TITLE_MAX_LENGTH) return title;
 
-  return `${title.slice(0, TITLE_MAX_LENGTH).trimEnd()}...`;
+  return `${title.slice(0, TASK_TITLE_MAX_LENGTH).trimEnd()}...`;
 });
 
 watch(
@@ -283,24 +344,13 @@ const canSave = computed(() => {
   return isDirty.value && normalizedTitle.value.length > 0 && !isSaving.value;
 });
 
-const saveErrorMessage = computed(() => {
-  if (!saveError.value) return "";
+const saveErrorMessage = computed(() =>
+  getErrorMessage(saveError.value, "Unable to save changes.")
+);
 
-  const err = saveError.value as {
-    message?: string;
-
-    statusMessage?: string;
-
-    data?: { statusMessage?: string };
-  };
-
-  return (
-    err.data?.statusMessage ??
-    err.statusMessage ??
-    err.message ??
-    "Unable to save changes."
-  );
-});
+const deleteErrorMessage = computed(() =>
+  getErrorMessage(deleteError.value, "Unable to delete task.")
+);
 
 const saveTitle = async () => {
   if (!canSave.value) return;
@@ -308,6 +358,29 @@ const saveTitle = async () => {
   try {
     await saveTask({ title: normalizedTitle.value });
     isEditingTitle.value = false;
+  } catch {
+    return;
+  }
+};
+
+const openDeleteModal = () => {
+  deleteError.value = null;
+  isDeleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  if (isDeleting.value) return;
+  deleteError.value = null;
+  isDeleteModalOpen.value = false;
+};
+
+const confirmDelete = async () => {
+  if (!taskData.value || isDeleting.value) return;
+
+  try {
+    await deleteTask(taskData.value.id);
+    isDeleteModalOpen.value = false;
+    navigateTo("/tasks");
   } catch {
     return;
   }

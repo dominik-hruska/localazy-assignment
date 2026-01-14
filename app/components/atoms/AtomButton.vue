@@ -29,6 +29,11 @@ const toneClasses = computed(() => {
       inactive:
         "border-indigo-200 bg-indigo-50 text-indigo-700 hover:border-indigo-300 hover:text-indigo-800",
     },
+    rose: {
+      active: "border-rose-600 bg-rose-600 text-white",
+      inactive:
+        "border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300 hover:text-rose-800",
+    },
   } as const;
 
   const tone = tones[props.tone] ?? tones.slate;

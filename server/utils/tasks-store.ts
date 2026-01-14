@@ -53,3 +53,30 @@ export async function updateTask(
   await writeTasks(tasks);
   return updated;
 }
+
+export async function createTask(
+  title: string,
+  status: TaskStatus = TaskStatus.Todo,
+): Promise<Task> {
+  const tasks = await readTasks();
+  const nextId =
+    tasks.length === 0
+      ? 1
+      : tasks.reduce((max, task) => Math.max(max, task.id), 0) + 1;
+  const newTask: Task = { id: nextId, title, status };
+  tasks.push(newTask);
+  await writeTasks(tasks);
+  return newTask;
+}
+
+export async function deleteTask(id: number): Promise<boolean> {
+  const tasks = await readTasks();
+  const nextTasks = tasks.filter((task) => task.id !== id);
+
+  if (nextTasks.length === tasks.length) {
+    return false;
+  }
+
+  await writeTasks(nextTasks);
+  return true;
+}

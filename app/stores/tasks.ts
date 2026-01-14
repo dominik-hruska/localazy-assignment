@@ -37,6 +37,11 @@ export const useTasksStore = defineStore("tasks", () => {
     hasLoaded.value = true;
   }
 
+  function removeTask(id: number) {
+    tasks.value = tasks.value.filter((task) => task.id !== id);
+    hasLoaded.value = true;
+  }
+
   return {
     tasks,
     statusFilter,
@@ -46,5 +51,6 @@ export const useTasksStore = defineStore("tasks", () => {
     setTasks,
     setFilter,
     upsertTask,
+    removeTask,
   };
 });

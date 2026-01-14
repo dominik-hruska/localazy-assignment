@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AtomInputProps } from "~/types/atoms";
+import type { AtomInputEmits, AtomInputProps } from "~/types/atoms";
 
 defineOptions({ inheritAttrs: false });
 
@@ -27,9 +27,7 @@ const props = withDefaults(defineProps<AtomInputProps>(), {
   autocomplete: "off",
 });
 
-const emit = defineEmits<{
-  (event: "update:modelValue", value: string): void;
-}>();
+const emit = defineEmits<AtomInputEmits>();
 
 const onInput = (event: Event) => {
   const target = event.target as HTMLInputElement | null;

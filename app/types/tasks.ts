@@ -6,6 +6,11 @@ export type Task = {
   status: TaskStatus;
 };
 
+export type TaskCreateInput = {
+  title: string;
+  status?: TaskStatus;
+};
+
 export type TaskFilter = TaskStatus | "all";
 
 export type TaskFilterOption = {

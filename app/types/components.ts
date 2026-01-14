@@ -1,4 +1,4 @@
-import type { AtomButtonType } from "./atoms";
+import type { AtomButtonTone, AtomButtonType } from "./atoms";
 import type { Task } from "./tasks";
 
 export interface TaskCardProps {
@@ -32,9 +32,24 @@ export interface TaskActivityListProps {
   items: TaskActivityItem[];
 }
 
+export type MoleculeButtonEmits = {
+  (event: "click", value: MouseEvent): void;
+};
+
 export interface MoleculeButtonProps {
   loading?: boolean;
   disabled?: boolean;
   type?: AtomButtonType;
   active?: boolean;
+  tone?: AtomButtonTone;
 }
+
+export interface MoleculeModalProps {
+  open: boolean;
+  title?: string;
+  description?: string;
+}
+
+export type MoleculeModalEmits = {
+  (event: "close"): void;
+};

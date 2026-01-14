@@ -6,12 +6,15 @@
       <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
         Task #{{ task.id }}
       </p>
-      <span
-        class="rounded-full border px-3 py-1 text-xs font-semibold"
-        :class="statusClass"
-      >
-        {{ statusLabel }}
-      </span>
+      <div class="flex items-center gap-2">
+        <span
+          class="rounded-full border px-3 py-1 text-xs font-semibold"
+          :class="statusClass"
+        >
+          {{ statusLabel }}
+        </span>
+        <slot name="actions" />
+      </div>
     </div>
     <h2 class="mt-3 text-lg font-semibold text-slate-900 line-clamp-2">
       {{ task.title }}

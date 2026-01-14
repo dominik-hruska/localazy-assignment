@@ -10,13 +10,17 @@ export interface AtomLinkProps {
 
 export type AtomButtonType = "button" | "submit" | "reset";
 
-export type AtomButtonTone = "slate" | "indigo";
+export type AtomButtonTone = "slate" | "indigo" | "rose";
 
 export interface AtomButtonProps {
   active?: boolean;
   type?: AtomButtonType;
   tone?: AtomButtonTone;
 }
+
+export type AtomInputEmits = {
+  (event: "update:modelValue", value: string): void;
+};
 
 export interface AtomInputProps {
   modelValue?: string;
