@@ -39,64 +39,92 @@
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div class="rounded-2xl border border-slate-200 bg-white p-6">
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-3">
               <p
                 class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
               >
                 Task #{{ taskData.id }}
               </p>
-              <h2 class="text-2xl font-semibold text-slate-900">
-                {{ taskData.title }}
-              </h2>
+              <span
+                class="rounded-full border px-3 py-1 text-xs font-semibold"
+                :class="statusClasses[taskData.status]"
+              >
+                {{ statusLabels[taskData.status] }}
+              </span>
             </div>
-            <span
-              class="rounded-full border px-3 py-1 text-xs font-semibold"
-              :class="statusClasses[taskData.status]"
-            >
-              {{ statusLabels[taskData.status] }}
-            </span>
+            <div class="flex flex-wrap items-center gap-3">
+              <h2
+                class="text-2xl font-semibold text-slate-900"
+                :title="taskData.title"
+              >
+                {{ titlePreview }}
+              </h2>
+              <AtomButton
+                v-if="!isEditingTitle"
+                class="px-3 py-1 text-xs"
+                @click="startTitleEdit"
+              >
+                Edit
+              </AtomButton>
+            </div>
           </div>
-          <p class="mt-4 text-sm text-slate-600">
-            {{ detail?.summary }}
-          </p>
-          <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div
+            v-if="isEditingTitle"
+            class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+          >
             <label
               class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
             >
               Edit title
             </label>
 
-            <AtomInput
-              v-model="editableTitle"
-              class="mt-3"
-              placeholder="Update task title"
-              @keyup.enter="saveTitle"
-            />
+            <div class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start">
+              <div class="flex flex-col gap-1 sm:flex-1">
+                <AtomInput
+                  v-model="editableTitle"
+                  placeholder="Update task title"
+                  :max-length="TITLE_MAX_LENGTH"
+                  @keyup.enter="saveTitle"
+                  @keyup.escape="cancelTitleEdit"
+                />
+                <div class="flex items-center justify-between text-xs">
+                  <p class="text-slate-500">
+                    <span v-if="titleError" class="text-rose-600">
+                      {{ titleError }}
+                    </span>
+                    <span v-else-if="isDirty">Unsaved changes</span>
+                  </p>
+                  <p class="text-slate-400">
+                    {{ editableTitle.length }}/{{ TITLE_MAX_LENGTH }}
+                  </p>
+                </div>
+              </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-3">
-              <MoleculeButton
-                :active="true"
-                :loading="isSaving"
-                :disabled="!canSave"
-                @click="saveTitle"
-              >
-                {{ isSaving ? "Saving" : "Save changes" }}
-              </MoleculeButton>
+              <div class="flex flex-wrap items-center gap-2 sm:pt-1">
+                <MoleculeButton
+                  :active="true"
+                  :loading="isSaving"
+                  :disabled="!canSave"
+                  @click="saveTitle"
+                >
+                  {{ isSaving ? "Saving" : "Save" }}
+                </MoleculeButton>
+                <AtomButton class="px-3 py-2 text-sm" @click="cancelTitleEdit">
+                  Cancel
+                </AtomButton>
+              </div>
+            </div>
 
-              <p v-if="titleError" class="text-xs text-rose-600">
-                {{ titleError }}
-              </p>
-
-              <p v-else-if="saveError" class="text-sm text-rose-600">
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+              <p v-if="saveError" class="text-sm text-rose-600">
                 {{ saveErrorMessage }}
-              </p>
-
-              <p v-else-if="isDirty" class="text-xs text-slate-500">
-                Unsaved changes
               </p>
             </div>
           </div>
+          <p class="mt-4 text-sm text-slate-600">
+            {{ detail?.summary }}
+          </p>
           <div class="mt-6 grid gap-4 sm:grid-cols-2">
             <TaskMetaCard
               v-for="card in metaCards"
@@ -153,6 +181,7 @@
 import { TaskStatus } from "~/enums/task-status";
 import type { Task, TaskDetail } from "~/types/tasks";
 import type { TaskMetaCardProps } from "~/types/components";
+import AtomButton from "~/components/atoms/AtomButton.vue";
 import AtomLink from "~/components/atoms/AtomLink.vue";
 import AtomInput from "~/components/atoms/AtomInput.vue";
 import MoleculeButton from "~/components/molecules/MoleculeButton.vue";
@@ -187,16 +216,28 @@ const taskId = computed(() => {
 const { task, pending, error, isSaving, saveError, saveTask } =
   useTaskDetail(taskId);
 
+const TITLE_MAX_LENGTH = 30;
+const clampTitle = (value: string) => value.trim().slice(0, TITLE_MAX_LENGTH);
+
 const taskData = computed<Task | null>(() => task.value);
+const isEditingTitle = ref(false);
 
 const editableTitle = ref("");
+const titlePreview = computed(() => {
+  if (!taskData.value) return "";
+
+  const title = taskData.value.title.trim();
+  if (title.length <= TITLE_MAX_LENGTH) return title;
+
+  return `${title.slice(0, TITLE_MAX_LENGTH).trimEnd()}...`;
+});
 
 watch(
   () => task.value?.title,
 
   (title) => {
     if (typeof title === "string") {
-      editableTitle.value = title;
+      editableTitle.value = clampTitle(title);
     }
   },
 
@@ -222,9 +263,12 @@ watch(
 );
 
 const normalizedTitle = computed(() => editableTitle.value.trim());
+const baselineTitle = computed(() =>
+  task.value ? clampTitle(task.value.title) : "",
+);
 
 const isDirty = computed(
-  () => !!task.value && normalizedTitle.value !== task.value.title,
+  () => !!task.value && normalizedTitle.value !== baselineTitle.value,
 );
 
 const titleError = computed(() => {
@@ -263,9 +307,25 @@ const saveTitle = async () => {
 
   try {
     await saveTask({ title: normalizedTitle.value });
+    isEditingTitle.value = false;
   } catch {
     return;
   }
+};
+
+const startTitleEdit = () => {
+  if (!task.value) return;
+  editableTitle.value = clampTitle(task.value.title);
+  saveError.value = null;
+  isEditingTitle.value = true;
+};
+
+const cancelTitleEdit = () => {
+  if (task.value) {
+    editableTitle.value = clampTitle(task.value.title);
+  }
+  saveError.value = null;
+  isEditingTitle.value = false;
 };
 
 const statusLabels = TASK_STATUS_LABELS;

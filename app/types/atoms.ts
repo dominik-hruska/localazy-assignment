@@ -26,5 +26,6 @@ export interface AtomInputProps {
   name?: string;
   autocomplete?: string;
   disabled?: boolean;
+  maxLength?: number;
   ariaLabel?: string;
 }
