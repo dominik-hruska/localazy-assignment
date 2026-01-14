@@ -1,3 +1,4 @@
+import type { AtomButtonType } from "./atoms";
 import type { Task } from "./tasks";
 
 export interface TaskCardProps {
@@ -29,4 +30,11 @@ export interface TaskActivityItem {
 
 export interface TaskActivityListProps {
   items: TaskActivityItem[];
+}
+
+export interface MoleculeButtonProps {
+  loading?: boolean;
+  disabled?: boolean;
+  type?: AtomButtonType;
+  active?: boolean;
 }

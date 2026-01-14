@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { Task, TaskFilter, TaskStatus } from "~/types/tasks";
+import type { Task, TaskFilter } from "~/types/tasks";
 
 export const useTasksStore = defineStore("tasks", () => {
   const tasks = ref<Task[]>([]);
@@ -27,6 +27,16 @@ export const useTasksStore = defineStore("tasks", () => {
     statusFilter.value = nextFilter;
   }
 
+  function upsertTask(updatedTask: Task) {
+    const index = tasks.value.findIndex((task) => task.id === updatedTask.id);
+    if (index === -1) {
+      tasks.value = [...tasks.value, updatedTask];
+    } else {
+      tasks.value[index] = updatedTask;
+    }
+    hasLoaded.value = true;
+  }
+
   return {
     tasks,
     statusFilter,
@@ -35,5 +45,6 @@ export const useTasksStore = defineStore("tasks", () => {
     filteredTasks,
     setTasks,
     setFilter,
+    upsertTask,
   };
 });

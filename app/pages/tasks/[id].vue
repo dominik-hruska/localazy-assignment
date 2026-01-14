@@ -2,22 +2,25 @@
   <section class="flex flex-col gap-8">
     <div
       v-if="pending"
-      class="rounded-2xl border border-slate-200 bg-white p-6">
+      class="rounded-2xl border border-slate-200 bg-white p-6"
+    >
       <div class="flex flex-wrap items-start justify-between gap-4">
         <div class="flex flex-col gap-3">
-          <div class="h-3 w-24 rounded-full bg-slate-200"></div>
-          <div class="h-6 w-64 rounded-full bg-slate-200"></div>
+          <div class="h-3 w-24 rounded-full bg-slate-200" />
+          <div class="h-6 w-64 rounded-full bg-slate-200" />
         </div>
-        <div class="h-6 w-24 rounded-full bg-slate-200"></div>
+        <div class="h-6 w-24 rounded-full bg-slate-200" />
       </div>
     </div>
 
-    <div v-else-if="task" class="flex flex-col gap-8">
+    <div v-else-if="taskData" class="flex flex-col gap-8">
       <div
-        class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+      >
         <div class="flex flex-col gap-2">
           <p
-            class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+            class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
+          >
             Focus Brief
           </p>
           <h1 class="text-3xl font-semibold text-slate-900">Task detail</h1>
@@ -28,88 +31,142 @@
 
         <AtomLink
           class="text-sm font-semibold text-slate-600 transition hover:text-slate-900"
-          to="/tasks">
+          to="/tasks"
+        >
           Back to tasks
         </AtomLink>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-          <div class="flex flex-col gap-2">
-            <p
-              class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Task #{{ task.id }}
-            </p>
-            <h2 class="text-2xl font-semibold text-slate-900">
-              {{ task.title }}
-            </h2>
-          </div>
-          <span
-            class="rounded-full border px-3 py-1 text-xs font-semibold"
-            :class="statusClasses[task.status]">
-            {{ statusLabels[task.status] }}
-          </span>
-        </div>
-
-        <p class="mt-4 text-sm text-slate-600">
-          {{ detail?.summary }}
-        </p>
-
-        <div class="mt-6 grid gap-4 sm:grid-cols-2">
-          <TaskMetaCard
-            v-for="card in metaCards"
-            :key="card.label"
-            :label="card.label"
-            :value="card.value" />
-          <div class="rounded-xl bg-slate-50 p-4">
-            <p
-              class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Progress
-            </p>
-            <div class="mt-3 h-2 rounded-full bg-white">
-              <div
-                class="h-full rounded-full bg-slate-900"
-                :style="{ width: `${detail?.progress ?? 0}%` }"></div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div class="flex flex-col gap-2">
+              <p
+                class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+              >
+                Task #{{ taskData.id }}
+              </p>
+              <h2 class="text-2xl font-semibold text-slate-900">
+                {{ taskData.title }}
+              </h2>
             </div>
-            <p class="mt-2 text-xs text-slate-500">
-              {{ detail?.progress }}% complete
-            </p>
-          </div>
-        </div>
-
-        <div class="mt-6">
-          <p
-            class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-            Tags
-          </p>
-          <div class="mt-3 flex flex-wrap gap-2">
             <span
-              v-for="tag in detail?.tags ?? []"
-              :key="tag"
-              class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600">
-              {{ tag }}
+              class="rounded-full border px-3 py-1 text-xs font-semibold"
+              :class="statusClasses[taskData.status]"
+            >
+              {{ statusLabels[taskData.status] }}
             </span>
           </div>
-        </div>
-      </div>
+          <p class="mt-4 text-sm text-slate-600">
+            {{ detail?.summary }}
+          </p>
+          <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <label
+              class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+            >
+              Edit title
+            </label>
 
-      <div class="flex flex-col gap-4">
-        <TaskChecklist :items="detail?.checklist ?? []" />
-        <TaskActivityList :items="detail?.activity ?? []" />
-      </div>
+            <AtomInput
+              v-model="editableTitle"
+              class="mt-3"
+              placeholder="Update task title"
+              @keyup.enter="saveTitle"
+            />
+
+            <div class="mt-4 flex flex-wrap items-center gap-3">
+              <MoleculeButton
+                :active="true"
+                :loading="isSaving"
+                :disabled="!canSave"
+                @click="saveTitle"
+              >
+                {{ isSaving ? "Saving" : "Save changes" }}
+              </MoleculeButton>
+
+              <p v-if="titleError" class="text-xs text-rose-600">
+                {{ titleError }}
+              </p>
+
+              <p v-else-if="saveError" class="text-sm text-rose-600">
+                {{ saveErrorMessage }}
+              </p>
+
+              <p v-else-if="isDirty" class="text-xs text-slate-500">
+                Unsaved changes
+              </p>
+            </div>
+          </div>
+          <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <TaskMetaCard
+              v-for="card in metaCards"
+              :key="card.label"
+              :label="card.label"
+              :value="card.value"
+            />
+            <div class="rounded-xl bg-slate-50 p-4">
+              <p
+                class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+              >
+                Progress
+              </p>
+              <div class="mt-3 h-2 rounded-full bg-white">
+                <div
+                  class="h-full rounded-full bg-slate-900"
+                  :style="{ width: `${detail?.progress ?? 0}%` }"
+                />
+              </div>
+              <p class="mt-2 text-xs text-slate-500">
+                {{ detail?.progress }}% complete
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <p
+              class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+            >
+              Tags
+            </p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span
+                v-for="tag in detail?.tags ?? []"
+                :key="tag"
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
+              >
+                {{ tag }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <TaskChecklist :items="detail?.checklist ?? []" />
+          <TaskActivityList :items="detail?.activity ?? []" />
+        </div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import type { Task, TaskStatus } from "~/types/tasks";
+import type { Task, TaskDetail, TaskStatus } from "~/types/tasks";
 import type { TaskMetaCardProps } from "~/types/components";
 import AtomLink from "~/components/atoms/AtomLink.vue";
+import AtomInput from "~/components/atoms/AtomInput.vue";
+import MoleculeButton from "~/components/molecules/MoleculeButton.vue";
 import TaskActivityList from "~/components/TaskActivityList.vue";
 import TaskChecklist from "~/components/TaskChecklist.vue";
 import TaskMetaCard from "~/components/TaskMetaCard.vue";
+import { useTaskDetail } from "~/composables/useTaskDetail";
+import {
+  addDays,
+  formatDate,
+  getFocus,
+  hash,
+  pick,
+  pickMany,
+} from "~/helpers/task-detail";
 
 definePageMeta({
   middleware: ["task-id"],
@@ -121,21 +178,89 @@ const taskId = computed(() => {
   return Number(Array.isArray(rawId) ? rawId[0] : rawId);
 });
 
-const { data: task, pending, error } = useAsyncData<Task>(
-  "task-detail",
-  () => $fetch<Task>(`/api/tasks/${taskId.value}`),
-  { watch: [taskId] },
+const { task, pending, error, isSaving, saveError, saveTask } =
+  useTaskDetail(taskId);
+
+const taskData = computed<Task | null>(() => task.value);
+
+const editableTitle = ref("");
+
+watch(
+  () => task.value?.title,
+
+  (title) => {
+    if (typeof title === "string") {
+      editableTitle.value = title;
+    }
+  },
+
+  { immediate: true },
 );
+
+watch(editableTitle, () => {
+  if (saveError.value) {
+    saveError.value = null;
+  }
+});
 
 watch(
   error,
+
   (err) => {
     if (err?.statusCode === 404 || err?.statusCode === 400) {
       navigateTo("/404");
     }
   },
-  { immediate: true }
+
+  { immediate: true },
 );
+
+const normalizedTitle = computed(() => editableTitle.value.trim());
+
+const isDirty = computed(
+  () => !!task.value && normalizedTitle.value !== task.value.title,
+);
+
+const titleError = computed(() => {
+  if (!task.value) return "";
+  if (normalizedTitle.value.length === 0) {
+    return "Title cannot be empty.";
+  }
+  return "";
+});
+
+const canSave = computed(() => {
+  return isDirty.value && normalizedTitle.value.length > 0 && !isSaving.value;
+});
+
+const saveErrorMessage = computed(() => {
+  if (!saveError.value) return "";
+
+  const err = saveError.value as {
+    message?: string;
+
+    statusMessage?: string;
+
+    data?: { statusMessage?: string };
+  };
+
+  return (
+    err.data?.statusMessage ??
+    err.statusMessage ??
+    err.message ??
+    "Unable to save changes."
+  );
+});
+
+const saveTitle = async () => {
+  if (!canSave.value) return;
+
+  try {
+    await saveTask({ title: normalizedTitle.value });
+  } catch {
+    return;
+  }
+};
 
 const statusLabels: Record<TaskStatus, string> = {
   todo: "Todo",
@@ -155,7 +280,7 @@ const statusProgress: Record<TaskStatus, number> = {
   done: 100,
 };
 
-const detail = computed(() => {
+const detail = computed<TaskDetail | null>(() => {
   if (!task.value) return null;
 
   const current = task.value;
@@ -170,12 +295,12 @@ const detail = computed(() => {
 
   const owner = pick(
     ["Ava Petrova", "Liam Novak", "Maya Chen", "Jonas Varga", "Elena Ruiz"],
-    seed + 2
+    seed + 2,
   );
 
   const project = pick(
     ["Core Platform", "Release Ops", "Developer Experience", "Quality Signals"],
-    seed + 4
+    seed + 4,
   );
 
   const priority = pick(["Low", "Medium", "High", "Critical"], seed + 6);
@@ -184,7 +309,7 @@ const detail = computed(() => {
   const tags = pickMany(
     ["Stability", "Documentation", "UX polish", "Release", "Integration", "QA"],
     3,
-    seed
+    seed,
   );
 
   const checklistBase = [
@@ -198,8 +323,8 @@ const detail = computed(() => {
     current.status === "done"
       ? checklistBase.length
       : current.status === "todo"
-      ? 0
-      : (seed % (checklistBase.length - 1)) + 1;
+        ? 0
+        : (seed % (checklistBase.length - 1)) + 1;
 
   const checklist = checklistBase.map((label, index) => ({
     label,
@@ -246,47 +371,4 @@ const metaCards = computed<TaskMetaCardProps[]>(() => {
     { label: "Estimate", value: detail.value.estimate },
   ];
 });
-
-function hash(input: string) {
-  return [...input].reduce((acc, char) => acc + char.charCodeAt(0), 0);
-}
-
-function pick<T>(list: T[], seed: number) {
-  return list[Math.abs(seed) % list.length];
-}
-
-function pickMany<T>(list: T[], count: number, seed: number) {
-  const pool = [...list];
-  const result: T[] = [];
-  let index = Math.abs(seed);
-
-  while (pool.length > 0 && result.length < count) {
-    index = (index + 3) % pool.length;
-    result.push(pool.splice(index, 1)[0]);
-  }
-
-  return result;
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function addDays(date: Date, days: number) {
-  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function getFocus(title: string) {
-  const lower = title.toLowerCase();
-
-  if (lower.includes("release")) return "Release readiness";
-  if (lower.includes("bug")) return "Stability improvements";
-  if (lower.includes("doc")) return "Documentation rollout";
-
-  return "Delivery planning";
-}
 </script>

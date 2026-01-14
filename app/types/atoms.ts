@@ -14,3 +14,14 @@ export interface AtomButtonProps {
   active?: boolean;
   type?: AtomButtonType;
 }
+
+export interface AtomInputProps {
+  modelValue?: string;
+  type?: string;
+  placeholder?: string;
+  id?: string;
+  name?: string;
+  autocomplete?: string;
+  disabled?: boolean;
+  ariaLabel?: string;
+}
