@@ -150,7 +150,8 @@
 </template>
 
 <script setup lang="ts">
-import type { Task, TaskDetail, TaskStatus } from "~/types/tasks";
+import { TaskStatus } from "~/enums/task-status";
+import type { Task, TaskDetail } from "~/types/tasks";
 import type { TaskMetaCardProps } from "~/types/components";
 import AtomLink from "~/components/atoms/AtomLink.vue";
 import AtomInput from "~/components/atoms/AtomInput.vue";
@@ -158,6 +159,11 @@ import MoleculeButton from "~/components/molecules/MoleculeButton.vue";
 import TaskActivityList from "~/components/TaskActivityList.vue";
 import TaskChecklist from "~/components/TaskChecklist.vue";
 import TaskMetaCard from "~/components/TaskMetaCard.vue";
+import {
+  TASK_STATUS_CLASSES,
+  TASK_STATUS_LABELS,
+  TASK_STATUS_PROGRESS,
+} from "~/constants/tasks";
 import { useTaskDetail } from "~/composables/useTaskDetail";
 import {
   addDays,
@@ -262,23 +268,9 @@ const saveTitle = async () => {
   }
 };
 
-const statusLabels: Record<TaskStatus, string> = {
-  todo: "Todo",
-  "in-progress": "In progress",
-  done: "Done",
-};
-
-const statusClasses: Record<TaskStatus, string> = {
-  todo: "border-amber-200 bg-amber-50 text-amber-700",
-  "in-progress": "border-sky-200 bg-sky-50 text-sky-700",
-  done: "border-emerald-200 bg-emerald-50 text-emerald-700",
-};
-
-const statusProgress: Record<TaskStatus, number> = {
-  todo: 15,
-  "in-progress": 60,
-  done: 100,
-};
+const statusLabels = TASK_STATUS_LABELS;
+const statusClasses = TASK_STATUS_CLASSES;
+const statusProgress = TASK_STATUS_PROGRESS;
 
 const detail = computed<TaskDetail | null>(() => {
   if (!task.value) return null;
@@ -320,9 +312,9 @@ const detail = computed<TaskDetail | null>(() => {
   ];
 
   const doneCount =
-    current.status === "done"
+    current.status === TaskStatus.Done
       ? checklistBase.length
-      : current.status === "todo"
+      : current.status === TaskStatus.Todo
         ? 0
         : (seed % (checklistBase.length - 1)) + 1;
 

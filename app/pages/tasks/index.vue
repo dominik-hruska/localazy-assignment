@@ -101,7 +101,11 @@
 import AtomButton from "~/components/atoms/AtomButton.vue";
 import AtomLink from "~/components/atoms/AtomLink.vue";
 import TaskCard from "~/components/TaskCard.vue";
-import type { TaskFilterOption, TaskStatus } from "~/types/tasks";
+import {
+  TASK_FILTERS,
+  TASK_STATUS_CLASSES,
+  TASK_STATUS_LABELS,
+} from "~/constants/tasks";
 import { useTasksList } from "~/composables/useTasksList";
 
 const { pending, error, refresh, store } = useTasksList();
@@ -110,22 +114,7 @@ const handleRefresh = () => {
   refresh();
 };
 
-const filters: TaskFilterOption[] = [
-  { value: "all", label: "All" },
-  { value: "todo", label: "Todo" },
-  { value: "in-progress", label: "In progress" },
-  { value: "done", label: "Done" },
-];
-
-const statusLabels: Record<TaskStatus, string> = {
-  todo: "Todo",
-  "in-progress": "In progress",
-  done: "Done",
-};
-
-const statusClasses: Record<TaskStatus, string> = {
-  todo: "border-amber-200 bg-amber-50 text-amber-700",
-  "in-progress": "border-sky-200 bg-sky-50 text-sky-700",
-  done: "border-emerald-200 bg-emerald-50 text-emerald-700",
-};
+const filters = TASK_FILTERS;
+const statusLabels = TASK_STATUS_LABELS;
+const statusClasses = TASK_STATUS_CLASSES;
 </script>

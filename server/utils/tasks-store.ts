@@ -1,14 +1,15 @@
 import { promises as fs } from "node:fs";
 import { join } from "node:path";
+import { TaskStatus } from "~/enums/task-status";
 import type { Task } from "~/types/tasks";
 
 const DATA_DIR = join(process.cwd(), "server", "data");
 const TASKS_FILE = join(DATA_DIR, "tasks.json");
 
 const SEED_TASKS: Task[] = [
-  { id: 1, title: "Prepare release", status: "done" },
-  { id: 2, title: "Fix login bug", status: "in-progress" },
-  { id: 3, title: "Write API docs", status: "todo" },
+  { id: 1, title: "Prepare release", status: TaskStatus.Done },
+  { id: 2, title: "Fix login bug", status: TaskStatus.InProgress },
+  { id: 3, title: "Write API docs", status: TaskStatus.Todo },
 ];
 
 async function ensureDataFile() {

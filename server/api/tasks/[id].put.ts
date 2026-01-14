@@ -1,5 +1,5 @@
 import { getRouterParam, readBody, createError } from "h3";
-import type { TaskStatus } from "~/types/tasks";
+import { TaskStatus } from "~/enums/task-status";
 import { updateTask } from "~~/server/utils/tasks-store";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,7 +26,10 @@ export default defineEventHandler(async (event) => {
     patch.title = body.title;
   }
 
-  if (body.status && ["todo", "in-progress", "done"].includes(body.status)) {
+  if (
+    body.status &&
+    Object.values(TaskStatus).includes(body.status as TaskStatus)
+  ) {
     patch.status = body.status;
   }
 

@@ -1,5 +1,6 @@
 import type { Ref } from "vue";
-import type { Task, TaskStatus } from "~/types/tasks";
+import type { Task } from "~/types/tasks";
+import type { TaskStatus } from "~/enums/task-status";
 import { useTasksStore } from "~/stores/tasks";
 
 export const useTaskDetail = (taskId: Ref<number>) => {

@@ -1,9 +1,11 @@
 <template>
   <section class="flex flex-col gap-10">
     <div
-      class="rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm sm:p-10">
+      class="rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm sm:p-10"
+    >
       <p
-        class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">
+        class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400"
+      >
         Tasks Dashboard
       </p>
       <h1 class="mt-4 text-4xl font-semibold text-slate-900 sm:text-5xl">
@@ -16,7 +18,8 @@
       <div class="mt-6 flex flex-wrap items-center gap-3">
         <AtomLink
           class="rounded-full border border-slate-900 bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-lg"
-          to="/tasks">
+          to="/tasks"
+        >
           View tasks
         </AtomLink>
       </div>
@@ -26,9 +29,11 @@
       <div
         v-for="stat in stats"
         :key="stat.label"
-        class="rounded-2xl border border-slate-200 bg-white p-6">
+        class="rounded-2xl border border-slate-200 bg-white p-6"
+      >
         <p
-          class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+          class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400"
+        >
           {{ stat.label }}
         </p>
         <p class="mt-3 text-3xl font-semibold text-slate-900">
@@ -39,7 +44,8 @@
     </div>
 
     <div
-      class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
+      class="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div>
         <p class="text-sm font-semibold text-slate-900">Today's focus</p>
         <p class="mt-2 text-sm text-slate-500">
@@ -49,7 +55,8 @@
       </div>
       <AtomLink
         class="w-fit rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
-        to="/tasks">
+        to="/tasks"
+      >
         Open task list
       </AtomLink>
     </div>
@@ -59,12 +66,13 @@
 <script setup lang="ts">
 import AtomLink from "~/components/atoms/AtomLink.vue";
 import { useTasksList } from "~/composables/useTasksList";
+import { TaskStatus } from "~/enums/task-status";
 
 const { store } = useTasksList();
 
 const totalTasks = computed(() => store.tasks.length);
 const completedTasks = computed(
-  () => store.tasks.filter((task) => task.status === "done").length,
+  () => store.tasks.filter((task) => task.status === TaskStatus.Done).length,
 );
 const completionRate = computed(() => {
   if (totalTasks.value === 0) return 0;

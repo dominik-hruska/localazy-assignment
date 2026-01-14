@@ -1,4 +1,4 @@
-export type TaskStatus = "todo" | "in-progress" | "done";
+import type { TaskStatus } from "~/enums/task-status";
 
 export type Task = {
   id: number;
