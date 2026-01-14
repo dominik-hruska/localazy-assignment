@@ -25,3 +25,8 @@ export type TaskDetail = {
   activity: Array<{ label: string; time: string }>;
   progress: number;
 };
+
+export type TaskBoardColumn = {
+  status: TaskStatus;
+  tasks: Task[];
+};

@@ -10,9 +10,12 @@ export interface AtomLinkProps {
 
 export type AtomButtonType = "button" | "submit" | "reset";
 
+export type AtomButtonTone = "slate" | "indigo";
+
 export interface AtomButtonProps {
   active?: boolean;
   type?: AtomButtonType;
+  tone?: AtomButtonTone;
 }
 
 export interface AtomInputProps {
